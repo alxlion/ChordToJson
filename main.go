@@ -12,6 +12,17 @@ type Line struct {
 	Text string
 }
 
+// Chord format reference
+var types = map[string]string{
+	"t":   "title",
+	"st":  "subtitle",
+	"soc": "start_of_chorus",
+	"eoc": "end_of_chorus",
+	"c":   "comment",
+	"sot": "start_of_tab",
+	"eot": "end_of_tab",
+}
+
 // readLines gets content of a file using its path.
 // Using bufio Scanner to append each line into an array.
 // It returns the array with lines and any Scanner error encountered.
@@ -31,12 +42,18 @@ func readLines(path string) ([]string, error) {
 	return lines, scanner.Err()
 }
 
-// getLineType defines the type of the string following the ChordPro convention (http://tenbyten.com/software/songsgen/help/HtmlHelp/files_reference.htm)
+// getLineType defines the type of the string following the ChordPro convention
 // Using regexp to determine the type
-// It returns the type of the string, its plain text without directives and any regexp compilation error encountered.
+// It returns the type of the string, its plain text without directives and any error encountered.
 func getLineType(line string) (string, string, error) {
+	for key, value := range types {
+		match, _ := regexp.MatchString(fmt.Sprint("^{(", value, "|", key, ")"), line)
+		if match {
+			return value, "", nil
+		}
+	}
 
-	return "", "", nil
+	return "verse", "", nil
 }
 
 func main() {
@@ -47,8 +64,11 @@ func main() {
 		panic(err)
 	}
 
-	for i, line := range lines {
-		lineArray = append(lineArray, Line{"line", line})
-		fmt.Printf("Line %v: %v \n", i+1, line)
+	for _, line := range lines {
+		if line != "" {
+			lineType, _, _ := getLineType(line)
+			lineArray = append(lineArray, Line{"line", line})
+			fmt.Printf("%v: %v \n", lineType, line)
+		}
 	}
 }

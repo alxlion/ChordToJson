@@ -17,7 +17,7 @@ func TestReadLines(t *testing.T) {
 
 }
 
-func TestGetLineType(t *testing.T) {
+func TestParseLine(t *testing.T) {
 
 	assert := assert.New(t)
 	lines, err := readLines("./test.chordpro")
@@ -25,18 +25,26 @@ func TestGetLineType(t *testing.T) {
 	assert.Nil(err)
 
 	// Testing title type
-	titleType, _, _ := getLineType(lines[0])
-	assert.Equal("title", titleType, "they should have the same type")
+	titleType, titleContent, err := parseLine(lines[0])
+	assert.Nil(err)
+	assert.Equal(map[string]string{"t": "title"}, titleType, "they should have the same type")
+	assert.Equal(" Hello world", titleContent, "they should have the same content")
 
 	// Testing subtitle type
-	stType, _, _ := getLineType(lines[1])
-	assert.Equal("subtitle", stType, "they should have the same type")
+	stType, stContent, err := parseLine(lines[1])
+	assert.Nil(err)
+	assert.Equal(map[string]string{"st": "subtitle"}, stType, "they should have the same type")
+	assert.Equal(" Foo Bar", stContent, "they should have the same content")
 
 	// Testing comment type
-	commentType, _, _ := getLineType(lines[3])
-	assert.Equal("comment", commentType, "they should have the same type")
+	commentType, commentContent, err := parseLine(lines[3])
+	assert.Nil(err)
+	assert.Equal(map[string]string{"c": "comment"}, commentType, "they should have the same type")
+	assert.Equal(" © 2015 FooBar Ltd", commentContent, "they should have the same content")
 
 	// Testing verse type
-	verseType, _, _ := getLineType(lines[5])
-	assert.Equal("verse", verseType, "they should have the same type")
+	verseType, verseContent, err := parseLine(lines[5])
+	assert.Nil(err)
+	assert.Equal(map[string]string{"v": "verse"}, verseType, "they should have the same type")
+	assert.Equal("[G]Lorem ipsum dolor sit amet, [D/F#]consectetur adipiscing elit. Don[Em]ec a diam lectus.", verseContent, "they should have the same type")
 }

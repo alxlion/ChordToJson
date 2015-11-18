@@ -8,8 +8,8 @@ import (
 )
 
 type Line struct {
-	Type string
-	Text string
+	Type    map[string]string
+	Content string
 }
 
 // Chord format reference
@@ -38,37 +38,43 @@ func readLines(path string) ([]string, error) {
 	for scanner.Scan() {
 		lines = append(lines, scanner.Text())
 	}
-
 	return lines, scanner.Err()
 }
 
-// getLineType defines the type of the string following the ChordPro convention
+// parseLine defines the type of the string following the ChordPro convention
 // Using regexp to determine the type
-// It returns the type of the string, its plain text without directives and any error encountered.
-func getLineType(line string) (string, string, error) {
+// It returns the type of the string, its content without directives and any error encountered.
+func parseLine(rawLine string) (map[string]string, string, error) {
 	for key, value := range types {
-		match, _ := regexp.MatchString(fmt.Sprint("^{(", value, "|", key, ")"), line)
-		if match {
-			return value, "", nil
+		matchKey, err := regexp.MatchString(fmt.Sprint("^{(", key, ")"), rawLine)
+		matchValue, err := regexp.MatchString(fmt.Sprint("^{(", value, ")"), rawLine)
+
+		if matchKey {
+			return map[string]string{key: value}, rawLine[1+len(key)+1 : len(rawLine)-1], err
+		} else if matchValue {
+			return map[string]string{key: value}, rawLine[1+len(value)+1 : len(rawLine)-1], err
 		}
 	}
-
-	return "verse", "", nil
+	return map[string]string{"v": "verse"}, rawLine, nil // Simple line: verse
 }
 
 func main() {
 
-	lines, err := readLines("./test.chordpro")
+	rawLines, err := readLines("./test.chordpro")
 	var lineArray []Line
 	if err != nil {
 		panic(err)
 	}
 
-	for _, line := range lines {
-		if line != "" {
-			lineType, _, _ := getLineType(line)
-			lineArray = append(lineArray, Line{"line", line})
-			fmt.Printf("%v: %v \n", lineType, line)
+	for _, rawLine := range rawLines {
+		if rawLine != "" {
+			rawLineType, rawLineContent, _ := parseLine(rawLine)
+			line := Line{rawLineType, rawLineContent}
+			lineArray = append(lineArray, line)
 		}
+	}
+
+	for _, line := range lineArray {
+		fmt.Printf("%v: %v \n", line.Type, line.Content)
 	}
 }

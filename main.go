@@ -24,6 +24,7 @@ package main
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
 	"os"
 	"regexp"
@@ -32,6 +33,7 @@ import (
 type Line struct {
 	Type    map[string]string
 	Content string
+	Chords  map[int]string
 }
 
 // Chord format reference
@@ -63,8 +65,8 @@ func readLines(path string) ([]string, error) {
 	return lines, scanner.Err()
 }
 
-// parseLine defines the type of the string following the ChordPro convention
-// Using regexp to determine the type
+// parseLine defines the type of the string following the ChordPro convention.
+// Using regexp to determine the type.
 // It returns the type of the string, its content without directives and any error encountered.
 func parseLine(rawLine string) (map[string]string, string, error) {
 	for key, value := range types {
@@ -80,6 +82,46 @@ func parseLine(rawLine string) (map[string]string, string, error) {
 	return map[string]string{"v": "verse"}, rawLine, nil // Simple line: verse
 }
 
+// getChords gets position of every chords in the line.
+// Using regexp to determine the positions.
+// It returns the map of chords and their position.
+func getChords(rawLine string) (map[int]string, error) {
+	mappedChords := make(map[int]string)
+	r, err := regexp.Compile("\\[[A-Za-z0-9#\\/]+\\]")
+	matchChordIndex := r.FindAllStringIndex(rawLine, -1)
+	matchChord := r.FindAllString(rawLine, -1)
+
+	for i, position := range matchChordIndex {
+		mappedChords[position[0]] = string(matchChord[i])
+	}
+
+	return mappedChords, err
+}
+
+// truncChords remove chord from line.
+// It browses the line char by char to exclude chords.
+// It returns the cleaned line.
+func truncChords(rawLine string) string {
+	var buf bytes.Buffer
+	var insertMode bool = false
+
+	for i := 0; i < len(rawLine); i++ {
+		if string(rawLine[i]) == "[" {
+			insertMode = true
+		} else if string(rawLine[i]) == "]" {
+			insertMode = false
+		}
+
+		if insertMode == false {
+			if string(rawLine[i]) != "]" {
+				buf.WriteString(string(rawLine[i]))
+			}
+		}
+	}
+
+	return buf.String()
+}
+
 func main() {
 
 	rawLines, err := readLines("./test.chordpro")
@@ -91,12 +133,14 @@ func main() {
 	for _, rawLine := range rawLines {
 		if rawLine != "" {
 			rawLineType, rawLineContent, _ := parseLine(rawLine)
-			line := Line{rawLineType, rawLineContent}
+			line := Line{rawLineType, rawLineContent, map[int]string{}}
 			lineArray = append(lineArray, line)
+			fmt.Println(getChords(rawLine))
 		}
 	}
 
 	for _, line := range lineArray {
 		fmt.Printf("%v: %v \n", line.Type, line.Content)
 	}
+
 }

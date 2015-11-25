@@ -70,3 +70,39 @@ func TestParseLine(t *testing.T) {
 	assert.Equal(map[string]string{"v": "verse"}, verseType, "they should have the same type")
 	assert.Equal("[G]Lorem ipsum dolor sit amet, [D/F#]consectetur adipiscing elit. Don[Em]ec a diam lectus.", verseContent, "they should have the same type")
 }
+
+func TestGetChords(t *testing.T) {
+
+	assert := assert.New(t)
+	lines, err := readLines("./test.chordpro")
+
+	assert.Nil(err)
+
+	chordMap, _ := getChords(lines[0])
+	assert.Equal(map[int]string{}, chordMap, "they should be equal")
+
+	chordMap, _ = getChords(lines[1])
+	assert.Equal(map[int]string{}, chordMap, "they should be equal")
+
+	chordMap, _ = getChords(lines[5])
+	assert.Equal(map[int]string{31: "[D/F#]", 0: "[G]", 69: "[Em]"}, chordMap, "they should be equal")
+
+	chordMap, _ = getChords(lines[8])
+	assert.Equal(map[int]string{7: "[Bm7]", 27: "[D/F#]"}, chordMap, "they should be equal")
+}
+
+func TestTruncChords(t *testing.T) {
+
+	assert := assert.New(t)
+	lines, err := readLines("./test.chordpro")
+
+	assert.Nil(err)
+
+	assert.Equal("{t: Hello world}", truncChords(lines[0]), "they should be equal")
+
+	assert.Equal("{st: Foo Bar}", truncChords(lines[1]), "they should be equal")
+
+	assert.Equal("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec a diam lectus.", truncChords(lines[5]), "they should be equal")
+
+	assert.Equal("Donec et mollis dolor.", truncChords(lines[8]), "they should be equal")
+}

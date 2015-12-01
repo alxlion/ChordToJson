@@ -133,27 +133,63 @@ func truncChords(rawLine string) string {
 	return buf.String()
 }
 
-func main() {
-
-	rawLines, err := readLines("./test.chordpro")
-
-	var lineArray []Line
-	if err != nil {
-		panic(err)
+// getJSON convert Line array to JSON formatted.
+// It uses Marshal to convert structs to JSON.
+// It returns the return of the Marshal(Indent) : bytes and error
+func getJSON(lines []Line, pretty bool) ([]byte, error) {
+	root := &Root{lines}
+	if pretty {
+		return json.MarshalIndent(root, "", " ")
+	} else {
+		return json.Marshal(root)
 	}
+}
 
-	// Line struct constructor
+// initLines create structure list from raw lines.
+// It uses function of the project.
+// It returns an array of Line.
+func initLines(rawLines []string) []Line {
+	var lines []Line
 	for _, rawLine := range rawLines {
 		rawLineType, rawLineContent, _ := parseLine(rawLine)
 		lineChords, _ := getChords(rawLine)
 		line := Line{rawLineType, truncChords(rawLineContent), lineChords}
-		lineArray = append(lineArray, line)
+		lines = append(lines, line)
 	}
 
-	root := &Root{lineArray}
+	return lines
+}
 
-	obj, _ := json.MarshalIndent(root, "", " ")
-	//obj, _ := json.Marshal(root)
-	fmt.Println(string(obj))
+func main() {
 
+	// Arguments filtering
+	if len(os.Args) < 2 {
+		usage()
+		os.Exit(1)
+	}
+	file := os.Args[1]
+	options := os.Args[2:]
+
+	if (len(options) > 1) || (file == "") {
+		usage()
+		os.Exit(1)
+	}
+	// -- End arguments filterting
+
+	rawLines, err := readLines(file)
+	if err != nil {
+		panic(err)
+	}
+
+	lineArray := initLines(rawLines)
+
+	if hasArg(options, "--pretty") {
+		json, _ := getJSON(lineArray, true)
+		fmt.Println(string(json))
+	} else {
+		json, _ := getJSON(lineArray, false)
+		fmt.Println(string(json))
+	}
+
+	os.Exit(0)
 }

@@ -25,15 +25,21 @@ package main
 import (
 	"bufio"
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"os"
 	"regexp"
+	"strconv"
 )
 
+type Root struct {
+	Lines []Line `json:"lines"`
+}
+
 type Line struct {
-	Type    map[string]string
-	Content string
-	Chords  map[int]string
+	Type    map[string]string `json:"type"`
+	Content string            `json:"content,omitempty"`
+	Chords  map[string]string `json:"chords,omitempty"`
 }
 
 // Chord format reference
@@ -90,14 +96,14 @@ func parseLine(rawLine string) (map[string]string, string, error) {
 // getChords gets position of every chords in the line.
 // Using regexp to determine the positions.
 // It returns the map of chords and their position.
-func getChords(rawLine string) (map[int]string, error) {
-	mappedChords := make(map[int]string)
+func getChords(rawLine string) (map[string]string, error) {
+	mappedChords := make(map[string]string)
 	r, err := regexp.Compile("\\[[A-Za-z0-9#\\/]+\\]")
 	matchChordIndex := r.FindAllStringIndex(rawLine, -1)
 	matchChord := r.FindAllString(rawLine, -1)
 
 	for i, position := range matchChordIndex {
-		mappedChords[position[0]] = string(matchChord[i])
+		mappedChords[strconv.Itoa(position[0])] = string(matchChord[i])
 	}
 
 	return mappedChords, err
@@ -130,20 +136,24 @@ func truncChords(rawLine string) string {
 func main() {
 
 	rawLines, err := readLines("./test.chordpro")
+
 	var lineArray []Line
 	if err != nil {
 		panic(err)
 	}
 
+	// Line struct constructor
 	for _, rawLine := range rawLines {
 		rawLineType, rawLineContent, _ := parseLine(rawLine)
-		line := Line{rawLineType, rawLineContent, map[int]string{}}
+		lineChords, _ := getChords(rawLine)
+		line := Line{rawLineType, truncChords(rawLineContent), lineChords}
 		lineArray = append(lineArray, line)
-		fmt.Println(getChords(rawLine))
 	}
 
-	for _, line := range lineArray {
-		fmt.Printf("%v: %v \n", line.Type, line.Content)
-	}
+	root := &Root{lineArray}
+
+	obj, _ := json.MarshalIndent(root, "", " ")
+	//obj, _ := json.Marshal(root)
+	fmt.Println(string(obj))
 
 }

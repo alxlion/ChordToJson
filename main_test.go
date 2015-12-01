@@ -79,16 +79,16 @@ func TestGetChords(t *testing.T) {
 	assert.Nil(err)
 
 	chordMap, _ := getChords(lines[0])
-	assert.Equal(map[int]string{}, chordMap, "they should be equal")
+	assert.Equal(map[string]string{}, chordMap, "they should be equal")
 
 	chordMap, _ = getChords(lines[1])
-	assert.Equal(map[int]string{}, chordMap, "they should be equal")
+	assert.Equal(map[string]string{}, chordMap, "they should be equal")
 
 	chordMap, _ = getChords(lines[5])
-	assert.Equal(map[int]string{31: "[D/F#]", 0: "[G]", 69: "[Em]"}, chordMap, "they should be equal")
+	assert.Equal(map[string]string{"31": "[D/F#]", "0": "[G]", "69": "[Em]"}, chordMap, "they should be equal")
 
 	chordMap, _ = getChords(lines[8])
-	assert.Equal(map[int]string{7: "[Bm7]", 27: "[D/F#]"}, chordMap, "they should be equal")
+	assert.Equal(map[string]string{"7": "[Bm7]", "27": "[D/F#]"}, chordMap, "they should be equal")
 }
 
 func TestTruncChords(t *testing.T) {

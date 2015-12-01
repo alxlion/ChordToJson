@@ -69,6 +69,11 @@ func readLines(path string) ([]string, error) {
 // Using regexp to determine the type.
 // It returns the type of the string, its content without directives and any error encountered.
 func parseLine(rawLine string) (map[string]string, string, error) {
+
+	if rawLine == "" {
+		return map[string]string{"b": "blank"}, "", nil // Blank line
+	}
+
 	for key, value := range types {
 		matchKey, err := regexp.MatchString(fmt.Sprint("^{(", key, ")"), rawLine)
 		matchValue, err := regexp.MatchString(fmt.Sprint("^{(", value, ")"), rawLine)
@@ -131,12 +136,10 @@ func main() {
 	}
 
 	for _, rawLine := range rawLines {
-		if rawLine != "" {
-			rawLineType, rawLineContent, _ := parseLine(rawLine)
-			line := Line{rawLineType, rawLineContent, map[int]string{}}
-			lineArray = append(lineArray, line)
-			fmt.Println(getChords(rawLine))
-		}
+		rawLineType, rawLineContent, _ := parseLine(rawLine)
+		line := Line{rawLineType, rawLineContent, map[int]string{}}
+		lineArray = append(lineArray, line)
+		fmt.Println(getChords(rawLine))
 	}
 
 	for _, line := range lineArray {

@@ -20,7 +20,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE. */
 
-package main
+package chordtojson
 
 import (
 	"bufio"
@@ -51,6 +51,21 @@ var types = map[string]string{
 	"c":   "comment",
 	"sot": "start_of_tab",
 	"eot": "end_of_tab",
+}
+
+func Final(file string) string {
+
+	rawLines, err := readLines(file)
+	if err != nil {
+		panic(err)
+	}
+
+	lineArray := initLines(rawLines)
+
+	json, _ := getJSON(lineArray, false)
+
+	return string(json)
+
 }
 
 // readLines gets content of a file using its path.

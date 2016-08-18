@@ -20,7 +20,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE. */
 
-package chordtojson
+package main
 
 import (
 	"bufio"
@@ -30,6 +30,7 @@ import (
 	"os"
 	"regexp"
 	"strconv"
+	"strings"
 )
 
 type Root struct {
@@ -168,15 +169,18 @@ func main() {
 	file := os.Args[1]
 	options := os.Args[2:]
 
-	if (len(options) > 1) || (file == "") {
+	if (len(options) > 2) || (file == "") {
 		usage()
 		os.Exit(1)
 	}
 	// -- End arguments filterting
 
-	rawLines, err := readLines(file)
+	var rawLines []string
+	var err error
+
+	rawLines, err = readLines(file)
 	if err != nil {
-		panic(err)
+		rawLines = strings.Split(file, "\n")
 	}
 
 	lineArray := initLines(rawLines)

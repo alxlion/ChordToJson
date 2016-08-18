@@ -53,23 +53,6 @@ var types = map[string]string{
 	"eot": "end_of_tab",
 }
 
-func Final(file string) string {
-
-	rawLines, err := readLines(file)
-	if err != nil {
-		panic(err)
-	}
-
-	lineArray := initLines(rawLines)
-
-	json, _ := getJSON(lineArray, false)
-
-	return string(json)
-
-}
-
-// readLines gets content of a file using its path.
-// Using bufio Scanner to append each line into an array.
 // It returns the array with lines and any Scanner error encountered.
 func readLines(path string) ([]string, error) {
 	file, err := os.Open(path)
